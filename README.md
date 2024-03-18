@@ -1,42 +1,55 @@
-## The project is not Deploying that's why i have given the instructions to clone the repo.
+# Todo App
 
-# Demo Todo App with Next.js 14, Supabse, Drizzle ORM and MaterialUI
+## Introduction
+Demo Todo App with Next.js 14, Supabse, Drizzle ORM and MaterialUI
 
-Explore the capabilities of Next.js 14 through our demo repository showcasing a
-simple todo app. Dive into server actions and leverage Drizzle ORM integration
-to grasp how to efficiently manage tasks.
+## Project Type
+Frontend | Backend | Fullstack
 
-## Learn More
+## Deplolyed App
+Github-Url: [https://deployed-site.whatever](https://github.com/Mnv17/Todo-App)
 
-To learn more about Next.js, take a look at the following resources:
+## Directory Structure
+todo-app/
+├─ src/
+    ├─ db
+       ├─ index.ts
+       ├─ schema.ts
+    ├─ pages
+       ├─ api
+          ├─ auth
+              ├─ [...nextauth].ts
+          ├─ trpc
+              ├─ [trpc].ts
+       ├─ app.tsx
+       ├─ index.tsx
+    ├─ servers
+       ├─ api
+            ├─ routers
+                  ├─ todo.ts
+            ├─ root.ts
+            ├─ trpc.ts
+    ├─ styles
+       ├─ global.css
+    ├─ utils
+       ├─ api.ts
+    ├─ env.js
+## Video Walkthrough of the project
+[Video(Project)](https://drive.google.com/file/d/1-Kl-5CzWCvuk4AicP83W8SFd6bwMMmHW/view?usp=sharing)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) - to
-  automatically optimize and load Inter and Lexend from Google Fonts.
-
-This repository contains a simple demo todo app created with Next.js 13,
-showcasing the usage of server actions and integration with Drizzle ORM. It
-serves as a practical example to help you understand the implementation of these
-features and build efficient applications.
+## Video Walkthrough of the codebase
+[Video(Codebase)](https://drive.google.com/file/d/1tmfaPcPCHb0trl0vOa75egw1tWBz2SuQ/view?usp=sharing)
 
 ## Features
+Features of this application.
 
 - Manage tasks: Create, update, and delete todos with ease.
 - Server actions: Utilize server-side logic for handling todo operations.
-- Drizzle ORM integration: Seamlessly interact with the database using Drizzle
-  ORM.
+- Drizzle ORM integration: Seamlessly interact with the database using Drizzle ORM.
 - MaterialUI: The app looks good because of MaterialUI.
 
-## Getting Started
 
-### Prerequisites
-
-- Node.js and npm installed on your local machine.
-
-### Installation
-
+## Installation & Getting started
 1. Clone this repository:
 
    ```bash
@@ -54,27 +67,29 @@ features and build efficient applications.
    npm install
    ```
 
-### Usage
+4. Make .env folder
+    DATABASE_URL="postgres://postgres.aowjkpaephoqxhluktay:Krishvi@0119@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
 
-1. Start the development server:
+    NEXTAUTH_URL="http://localhost:3000"
 
-   ```bash
-   npm run dev
-   ```
+  add these things so your server will run 
 
-2. Open your browser and visit [http://localhost:3000](http://localhost:3000) to
-   access the app.
 
-### Contributing
 
-Contributions are welcome! If you find any issues or have ideas for
-improvements, please open an issue or submit a pull request.
 
-### License
+## API Endpoints
 
-This project is licensed under the [MIT License](LICENSE).
+GET (http://localhost:3000/) - retrieve all items
+POST (http://localhost:3000/todos) - create a new item
 
----
 
-Feel free to explore the codebase, experiment with server actions and Drizzle
-ORM, and learn how to create powerful applications using Next.js 13.
+## Technology Stack
+List and provide a brief overview of the technologies used in the project.
+
+- T3 stack
+- TypeScript
+- React.js
+- Next.js
+- NextAuth
+- Drizzle ORM
+- Supabase
