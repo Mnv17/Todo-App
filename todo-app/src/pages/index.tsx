@@ -1,12 +1,15 @@
+// index.tsx
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { Typography, Button, TextField, CircularProgress, Box, Container, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton } from '@mui/material';
+import { Typography, Button, TextField, CircularProgress, Box, Container, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Checkbox } from '@mui/material';
 import { api } from '@/utils/api';
 
 export default function Home() {
-  const [todo, setTodo] = useState('');
+  const [todo, setTodo] = useState<{ text: string | null; id: number; completed: boolean | null; }>({ text: '', id: 0, completed: null });
   const getTodos = api.todo.getTodos.useQuery();
   const submitTodo = api.todo.submitTodo.useMutation();
+  const updateTodo = api.todo.updateTodo.useMutation();
+  const deleteTodo = api.todo.deleteTodo.useMutation();
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -16,15 +19,29 @@ export default function Home() {
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
 
-    if (!todo || todo.length < 5) {
+    if (!todo.text || todo.text.length < 5) {
       return alert('Todo must contain at least 5 characters');
     }
 
-    await submitTodo.mutateAsync({ text: todo });
+    await submitTodo.mutateAsync({ text: todo.text });
 
     void getTodos.refetch();
 
-    setTodo('');
+    setTodo({ ...todo, text: '', id: 0, completed: null });
+  };
+
+  const handleCheckboxChange = async (id: number, completed: boolean | null | undefined) => {
+    const updatedCompleted = completed ? false : true; // Toggle completed status
+
+    await updateTodo.mutateAsync({ id, completed: updatedCompleted });
+
+    void getTodos.refetch();
+  };
+
+  const handleDelete = async (id: number) => {
+    await deleteTodo.mutateAsync({ id });
+
+    void getTodos.refetch();
   };
 
   return (
@@ -40,14 +57,14 @@ export default function Home() {
           <form onSubmit={handleSubmit} style={{ marginTop: '16px', display: "flex", gap: "8px" }}>
             <TextField
               type="text"
-              name="todo"
+              name="text" // Change 'todo' to 'text'
               id="todo"
               label="Todo"
               variant="outlined"
               size="small"
               fullWidth
-              onChange={(e) => setTodo(e.target.value)}
-              value={todo}
+              onChange={(e) => setTodo({ ...todo, text: e.target.value })}
+              value={todo.text}
               style={{ marginBottom: '8px' }}
             />
             <Button type="submit" variant="contained" color="primary" size="small" style={{ color: "white", background: "blue" }}>
@@ -66,10 +83,14 @@ export default function Home() {
                 {getTodos.data && Array.isArray(getTodos.data) ? (
                   getTodos.data.map((todo) => (
                     <ListItem key={todo.id}>
-                      <ListItemText primary={todo.text} />
+                      <Checkbox
+                        checked={todo.completed ?? undefined}
+                        onChange={() => handleCheckboxChange(todo.id, todo.completed)}
+                      />
+                      <ListItemText primary={todo.text ?? ''} /> {/* Handle null case */}
                       <ListItemSecondaryAction>
-                        <IconButton edge="end" aria-label="delete">
-                          {/* Add delete icon or button functionality here */}
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(todo.id)}>
+                          Delete
                         </IconButton>
                       </ListItemSecondaryAction>
                     </ListItem>
