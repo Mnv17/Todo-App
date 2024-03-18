@@ -10,8 +10,8 @@ export default function Home() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    getTodos.refetch();
-  }, [session]);
+    void getTodos.refetch();
+  }, [getTodos, session]);
 
   const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
@@ -22,22 +22,22 @@ export default function Home() {
 
     await submitTodo.mutateAsync({ text: todo });
 
-    getTodos.refetch();
+    void getTodos.refetch();
 
     setTodo('');
   };
 
   return (
-    <Container maxWidth="screen" class="py-6 px-12" style={{background:"#E0E0E0",}}>
-      <Typography variant="h4" gutterBottom >
+    <Container maxWidth={false} className="py-6 px-12" style={{ background: "#E0E0E0" }}>
+      <Typography variant="h4" gutterBottom>
         {session?.user ? `Welcome, ${session.user.name}` : 'Please sign in'}
       </Typography>
       {session ? (
         <>
-          <Button variant="contained" onClick={() => signOut()} color="secondary" style={{color: "white", background:"red"}}>
+          <Button variant="contained" onClick={() => signOut()} color="secondary" style={{ color: "white", background: "red" }}>
             Sign Out
           </Button>
-          <form onSubmit={handleSubmit} style={{ marginTop: '16px', display:"flex", gap:"8px" }}>
+          <form onSubmit={handleSubmit} style={{ marginTop: '16px', display: "flex", gap: "8px" }}>
             <TextField
               type="text"
               name="todo"
@@ -50,7 +50,7 @@ export default function Home() {
               value={todo}
               style={{ marginBottom: '8px' }}
             />
-            <Button type="submit" variant="contained" color="primary" size="small" style={{color: "white",background:"blue"}}>
+            <Button type="submit" variant="contained" color="primary" size="small" style={{ color: "white", background: "blue" }}>
               Submit
             </Button>
           </form>
@@ -82,7 +82,7 @@ export default function Home() {
           </Box>
         </>
       ) : (
-        <Button variant="contained" onClick={() => signIn()} color="primary" style={{color: "white", background:"purple"}}>
+        <Button variant="contained" onClick={() => signIn()} color="primary" style={{ color: "white", background: "purple" }}>
           Sign In
         </Button>
       )}

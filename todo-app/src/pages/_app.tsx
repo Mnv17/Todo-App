@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { SessionProvider } from 'next-auth/react';
-import { AppProps } from 'next/app';
+import type { AppProps } from 'next/app';
 import { Inter } from 'next/font/google';
 import { api } from '@/utils/api';
 import '@/styles/globals.css';
@@ -10,9 +12,11 @@ const inter = Inter({
 });
 
 const MyApp = ({ Component, pageProps }: AppProps) => {
+  const session = pageProps.session;
+
   return (
     <div className={`font-sans ${inter.variable}`}>
-      <SessionProvider session={pageProps.session}>
+      <SessionProvider session={session}>
         <Component {...pageProps} />
       </SessionProvider>
     </div>
