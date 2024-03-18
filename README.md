@@ -1,6 +1,6 @@
 ## The project is not Deploying that's why i have given the instructions to clone the repo.
 
-# Demo Todo App with Next.js 14, Supabse, and Drizzle ORM
+# Demo Todo App with Next.js 14, Supabse, Drizzle ORM and MaterialUI
 
 Explore the capabilities of Next.js 14 through our demo repository showcasing a
 simple todo app. Dive into server actions and leverage Drizzle ORM integration
@@ -27,6 +27,7 @@ features and build efficient applications.
 - Server actions: Utilize server-side logic for handling todo operations.
 - Drizzle ORM integration: Seamlessly interact with the database using Drizzle
   ORM.
+- MaterialUI: The app looks good because of MaterialUI.
 
 ## Getting Started
 
@@ -39,13 +40,13 @@ features and build efficient applications.
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/mnv17/todo-app-next.git
+   git clone https://github.com/mnv17/Todo-App.git
    ```
 
 2. Navigate to the project directory:
 
    ```bash
-   cd todo-app-next
+   cd todo-app
    ```
 
 3. Install dependencies:
