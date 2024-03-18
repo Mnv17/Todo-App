@@ -68,10 +68,12 @@ Features of this application.
    ```
 
 4. Make .env folder
+   ```
     DATABASE_URL="postgres://postgres.aowjkpaephoqxhluktay:Krishvi@0119@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-
+   ```
+  ```
     NEXTAUTH_URL="http://localhost:3000"
-
+  ```
   add these things so your server will run 
 
 
