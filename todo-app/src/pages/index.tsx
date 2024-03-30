@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { Typography, Button, TextField, CircularProgress, Box, Container, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'; // Import icons
 import { api } from '@/utils/api';
 
 export default function Home() {
@@ -33,8 +34,6 @@ export default function Home() {
     setTodo({ ...todo, text: '', id: '0', completed: null });
   };
 
-
-
   const handleDelete = async (id: string) => {
     await deleteTodoMutation.mutateAsync({ id });
 
@@ -55,13 +54,12 @@ export default function Home() {
     });
   };
 
-
-
   const handleEdit = (id: string, text: string) => {
     setEditTodoId(id);
     setEditTodoText(text);
     setIsEditing(true);
   };
+
   const handleEditSubmit = async () => {
     if (!editTodoText || editTodoText.length < 5) {
       return alert('Todo must contain at least 5 characters');
@@ -80,9 +78,6 @@ export default function Home() {
       },
     });
   };
-
-
-
 
   return (
     <Container maxWidth={false} className="py-6 px-12" style={{ background: "#E0E0E0" }}>
@@ -129,14 +124,14 @@ export default function Home() {
                       />
                       <ListItemText
                         primary={todo.text ?? ''}
-                        secondary={todo.completed ? 'Completed' : 'Incomplete'} // Show status based on 'completed' field
+                        secondary={todo.completed ? 'Completed' : 'Incomplete'}
                       />
                       <ListItemSecondaryAction>
                         <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(todo.id.toString(), todo.text ?? '')}>
-                          Edit
+                          <EditIcon style={{ color: 'green' }} />
                         </IconButton>
-                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(todo.id.toString())}>
-                          Delete
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(todo.id.toString())} style={{ marginLeft: '8px' }}>
+                          <DeleteIcon style={{ color: 'red' }} />
                         </IconButton>
                       </ListItemSecondaryAction>
                     </ListItem>

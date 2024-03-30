@@ -24,7 +24,7 @@ export const todoRouter = createTRPCRouter({
   updateTodo: publicProcedure
   .input(z.object({ id: z.string(), text: z.string().min(5), completed: z.boolean() }))
   .mutation(async ({ input }) => {
-    const idNumber: number = parseInt(input.id, 10); // Convert id from string to number
+    const idNumber: number = parseInt(input.id, 10); 
 
     const updatedTodo = await db.update(todos)
       .set({ text: input.text, completed: input.completed })
@@ -37,11 +37,11 @@ export const todoRouter = createTRPCRouter({
 
 
   deleteTodo: publicProcedure
-    .input(z.object({ id: z.string() })) // Assuming id is received as a string
+    .input(z.object({ id: z.string() })) 
     .mutation(async ({ input }) => {
-      const idNumber: number = parseInt(input.id, 10); // Convert id from string to number
+      const idNumber: number = parseInt(input.id, 10);
       const deletedTodo = await db.delete(todos)
-        .where(sql`id = ${idNumber}`) // Use idNumber in the SQL query
+        .where(sql`id = ${idNumber}`) 
         .returning();
 
       console.log(deletedTodo);
