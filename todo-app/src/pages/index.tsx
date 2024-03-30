@@ -1,48 +1,88 @@
-// index.tsx
 import { useState, useEffect } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { Typography, Button, TextField, CircularProgress, Box, Container, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Checkbox } from '@mui/material';
+import { Typography, Button, TextField, CircularProgress, Box, Container, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { api } from '@/utils/api';
 
 export default function Home() {
-  const [todo, setTodo] = useState<{ text: string | null; id: number; completed: boolean | null; }>({ text: '', id: 0, completed: null });
-  const getTodos = api.todo.getTodos.useQuery();
-  const submitTodo = api.todo.submitTodo.useMutation();
-  const updateTodo = api.todo.updateTodo.useMutation();
-  const deleteTodo = api.todo.deleteTodo.useMutation();
+  const [todo, setTodo] = useState<{ text: string | null; id: string; completed: boolean | null; }>({ text: '', id: '0', completed: null });
+  const [editTodoText, setEditTodoText] = useState<string>('');
+  const [editTodoId, setEditTodoId] = useState<string>('');
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+
+  const getTodosQuery = api.todo.getTodos.useQuery();
+  const submitTodoMutation = api.todo.submitTodo.useMutation();
+  const updateTodoMutation = api.todo.updateTodo.useMutation();
+  const deleteTodoMutation = api.todo.deleteTodo.useMutation();
   const { data: session } = useSession();
 
   useEffect(() => {
-    void getTodos.refetch();
-  }, [getTodos, session]);
+    void getTodosQuery.refetch();
+  }, [getTodosQuery, session]);
 
-  const handleSubmit = async (e: { preventDefault: () => void; }) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!todo.text || todo.text.length < 5) {
       return alert('Todo must contain at least 5 characters');
     }
 
-    await submitTodo.mutateAsync({ text: todo.text });
+    await submitTodoMutation.mutateAsync({ text: todo.text });
 
-    void getTodos.refetch();
+    void getTodosQuery.refetch();
 
-    setTodo({ ...todo, text: '', id: 0, completed: null });
+    setTodo({ ...todo, text: '', id: '0', completed: null });
   };
 
-  const handleCheckboxChange = async (id: number, completed: boolean | null | undefined) => {
-    const updatedCompleted = completed ? false : true; // Toggle completed status
 
-    await updateTodo.mutateAsync({ id, completed: updatedCompleted });
 
-    void getTodos.refetch();
+  const handleDelete = async (id: string) => {
+    await deleteTodoMutation.mutateAsync({ id });
+
+    void getTodosQuery.refetch();
   };
 
-  const handleDelete = async (id: number) => {
-    await deleteTodo.mutateAsync({ id });
+  const handleCheckboxChange = async (id: string, text: string, completed: boolean) => {
+    const updatedCompleted = !completed;
 
-    void getTodos.refetch();
+    await updateTodoMutation.mutateAsync({ id, text, completed: updatedCompleted }, {
+      onSuccess: () => {
+        void getTodosQuery.refetch(); // Refetch todos after successful update
+      },
+      onError: (error) => {
+        console.error('Error updating todo:', error);
+        // Handle error if update fails
+      },
+    });
   };
+
+
+
+  const handleEdit = (id: string, text: string) => {
+    setEditTodoId(id);
+    setEditTodoText(text);
+    setIsEditing(true);
+  };
+  const handleEditSubmit = async () => {
+    if (!editTodoText || editTodoText.length < 5) {
+      return alert('Todo must contain at least 5 characters');
+    }
+
+    await updateTodoMutation.mutateAsync({ id: editTodoId, text: editTodoText, completed: todo.completed ?? false }, {
+      onSuccess: () => {
+        void getTodosQuery.refetch(); // Refetch todos after successful update
+        setEditTodoId('');
+        setEditTodoText('');
+        setIsEditing(false);
+      },
+      onError: (error) => {
+        console.error('Error updating todo:', error);
+        // Handle error if update fails
+      },
+    });
+  };
+
+
+
 
   return (
     <Container maxWidth={false} className="py-6 px-12" style={{ background: "#E0E0E0" }}>
@@ -57,7 +97,7 @@ export default function Home() {
           <form onSubmit={handleSubmit} style={{ marginTop: '16px', display: "flex", gap: "8px" }}>
             <TextField
               type="text"
-              name="text" // Change 'todo' to 'text'
+              name="text"
               id="todo"
               label="Todo"
               variant="outlined"
@@ -72,24 +112,30 @@ export default function Home() {
             </Button>
           </form>
           <Box mt={2}>
-            {getTodos.isLoading ? (
+            {getTodosQuery.isLoading ? (
               <CircularProgress size={24} />
-            ) : getTodos.isError ? (
+            ) : getTodosQuery.isError ? (
               <Typography variant="body1" color="error">
-                Error fetching todos: {getTodos.error?.message}
+                Error fetching todos: {getTodosQuery.error?.message}
               </Typography>
             ) : (
               <List>
-                {getTodos.data && Array.isArray(getTodos.data) ? (
-                  getTodos.data.map((todo) => (
-                    <ListItem key={todo.id}>
+                {getTodosQuery.data && Array.isArray(getTodosQuery.data) ? (
+                  getTodosQuery.data.map((todo) => (
+                    <ListItem key={todo.id.toString()}>
                       <Checkbox
-                        checked={todo.completed ?? undefined}
-                        onChange={() => handleCheckboxChange(todo.id, todo.completed)}
+                        checked={todo.completed ?? false}
+                        onChange={() => handleCheckboxChange(todo.id.toString(), todo.text ?? '', todo.completed ?? false)}
                       />
-                      <ListItemText primary={todo.text ?? ''} /> {/* Handle null case */}
+                      <ListItemText
+                        primary={todo.text ?? ''}
+                        secondary={todo.completed ? 'Completed' : 'Incomplete'} // Show status based on 'completed' field
+                      />
                       <ListItemSecondaryAction>
-                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(todo.id)}>
+                        <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(todo.id.toString(), todo.text ?? '')}>
+                          Edit
+                        </IconButton>
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(todo.id.toString())}>
                           Delete
                         </IconButton>
                       </ListItemSecondaryAction>
@@ -99,6 +145,7 @@ export default function Home() {
                   <Typography variant="body1">No todos found.</Typography>
                 )}
               </List>
+
             )}
           </Box>
         </>
@@ -107,6 +154,24 @@ export default function Home() {
           Sign In
         </Button>
       )}
+      <Dialog open={isEditing} onClose={() => setIsEditing(false)}>
+        <DialogTitle>Edit Todo</DialogTitle>
+        <DialogContent>
+          <TextField
+            type="text"
+            name="editTodo"
+            label="Edit Todo"
+            variant="outlined"
+            fullWidth
+            value={editTodoText}
+            onChange={(e) => setEditTodoText(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsEditing(false)}>Cancel</Button>
+          <Button onClick={handleEditSubmit} color="primary">Save Changes</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
