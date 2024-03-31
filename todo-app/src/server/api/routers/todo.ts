@@ -47,4 +47,4 @@ export const todoRouter = createTRPCRouter({
       console.log(deletedTodo);
       return deletedTodo;
     }),
-});
+})

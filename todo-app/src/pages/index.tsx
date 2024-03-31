@@ -140,7 +140,6 @@ export default function Home() {
                   <Typography variant="body1">No todos found.</Typography>
                 )}
               </List>
-
             )}
           </Box>
         </>
