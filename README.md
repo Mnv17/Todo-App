@@ -7,7 +7,7 @@ Demo Todo App with Next.js 14, Supabse, Drizzle ORM and MaterialUI
 Frontend | Backend | Fullstack
 
 ## Deplolyed App
-Deployed URL: [Click me]([https://github.com/Mnv17/Todo-App](https://todo-app-bkjy.vercel.app/))
+Deployed URL: (https://todo-app-bkjy.vercel.app/)
 
 ## Directory Structure
 todo-app/
