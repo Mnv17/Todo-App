@@ -6,3 +6,4 @@ export const todos = pgTable('todos', {
     completed: boolean('completed'),
     // userId: text('user_id'), 
 });
+
