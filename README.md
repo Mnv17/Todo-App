@@ -12,28 +12,29 @@ Deployed URL: (https://todo-app-bkjy.vercel.app/)
 ## Directory Structure
 todo-app/
 ├─ src/
-    ├─ db
-       ├─ index.ts
-       ├─ schema.ts
-    ├─ pages
-       ├─ api
-          ├─ auth
-              ├─ [...nextauth].ts
-          ├─ trpc
-              ├─ [trpc].ts
-       ├─ app.tsx
-       ├─ index.tsx
-    ├─ servers
-       ├─ api
-            ├─ routers
-                  ├─ todo.ts
-            ├─ root.ts
-            ├─ trpc.ts
-    ├─ styles
-       ├─ global.css
-    ├─ utils
-       ├─ api.ts
-    ├─ env.js
+│  ├─ db/
+│  │  ├─ index.ts
+│  │  └─ schema.ts
+│  ├─ pages/
+│  ├─ api/
+│  ├─ auth/
+│  │  └─ [...nextauth].ts
+│  ├─ trpc/
+│  │  ├─ [trpc].ts
+│  │  ├─ app.tsx
+│  │  └─ index.tsx
+│  ├─ servers/
+│  │  ├─ api/
+│  │  │  ├─ routers/
+│  │  │  │  ├─ todo.ts
+│  │  │  │  └─ root.ts
+│  │  │  └─ trpc.ts
+│  │  └─ styles/
+│  │     └─ global.css
+│  ├─ utils/
+│  │  ├─ api.ts
+│  │  └─ env.js
+
 ## Video Walkthrough of the project
 [Video(Project)](https://drive.google.com/file/d/1-Kl-5CzWCvuk4AicP83W8SFd6bwMMmHW/view?usp=sharing)
 
