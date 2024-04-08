@@ -45,11 +45,10 @@ export default function Home() {
 
     await updateTodoMutation.mutateAsync({ id, text, completed: updatedCompleted }, {
       onSuccess: () => {
-        void getTodosQuery.refetch(); // Refetch todos after successful update
+        void getTodosQuery.refetch();
       },
       onError: (error) => {
         console.error('Error updating todo:', error);
-        // Handle error if update fails
       },
     });
   };
@@ -67,14 +66,13 @@ export default function Home() {
 
     await updateTodoMutation.mutateAsync({ id: editTodoId, text: editTodoText, completed: todo.completed ?? false }, {
       onSuccess: () => {
-        void getTodosQuery.refetch(); // Refetch todos after successful update
+        void getTodosQuery.refetch();
         setEditTodoId('');
         setEditTodoText('');
         setIsEditing(false);
       },
       onError: (error) => {
         console.error('Error updating todo:', error);
-        // Handle error if update fails
       },
     });
   };
@@ -125,6 +123,7 @@ export default function Home() {
                       <ListItemText
                         primary={todo.text ?? ''}
                         secondary={todo.completed ? 'Completed' : 'Incomplete'}
+                        style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}
                       />
                       <ListItemSecondaryAction>
                         <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(todo.id.toString(), todo.text ?? '')}>
