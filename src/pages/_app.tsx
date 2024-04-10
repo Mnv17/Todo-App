@@ -1,25 +1,28 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { SessionProvider } from 'next-auth/react';
-import type { AppProps } from 'next/app';
-import { Inter } from 'next/font/google';
-import { api } from '@/utils/api';
-import '@/styles/globals.css';
+import { type Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
+import { type AppType } from "next/app";
+import { Inter } from "next/font/google";
 
+import { api } from "@/utils/api";
+
+import "@/styles/globals.css";
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 });
 
-const MyApp = ({ Component, pageProps }: AppProps) => {
-  const session = pageProps.session;
-
+const MyApp: AppType<{ session: Session | null }> = ({
+  Component,
+  pageProps: { session, ...pageProps },
+}) => {
   return (
-    <div className={`font-sans ${inter.variable}`}>
-      <SessionProvider session={session}>
+    <SessionProvider session={session}>
+      <main className={`font-sans ${inter.variable}`}>
         <Component {...pageProps} />
-      </SessionProvider>
-    </div>
+      </main>
+    </SessionProvider>
   );
 };
 

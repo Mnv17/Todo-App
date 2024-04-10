@@ -1,51 +1,85 @@
-//todo.ts
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { db } from "@/db";
-import { todos } from "@/db/schema";
-import { sql } from 'drizzle-orm';
+
+import {
+  createTRPCRouter,
+  publicProcedure,
+} from "@/server/api/trpc";
+
+const addTodoInput = z.object({
+  userId: z.string(),
+  title: z.string(),
+  done: z.boolean()
+});
+
+const setDoneInput = z.object({
+  id: z.string(),
+  done: z.boolean(),
+})
+
+
+const setEditInput = z.object({
+  id: z.string(),
+  title: z.string(),
+});
 
 export const todoRouter = createTRPCRouter({
-  submitTodo: publicProcedure
-    .input(z.object({ text: z.string().min(5), completed: z.boolean().optional() }))
-    .mutation(async ({ input }) => {
-      const newTodo = await db.insert(todos).values({
-        text: input.text,
-        completed: input.completed ?? false, 
-      }).returning();
-
-      console.log(newTodo);
-      return newTodo;
-    }),
-
-  getTodos: publicProcedure.query(async () => {
-    return await db.select().from(todos);
+  getTodosByUser: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const todos = await ctx.db.todo.findMany({
+      where: {
+        userId: input
+      },
+      orderBy: {
+        createdAt:"desc"
+      }
+    })
+    return todos;
+  }),
+  createTodo: publicProcedure.input(addTodoInput).mutation(async ({ ctx, input }) => {
+    const todo = await ctx.db.todo.create({
+      data: {
+        userId: input.userId,
+        title: input.title,
+        done: input.done
+      }
+    })
+    return todo
+  }),
+  deleteTodo: publicProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    return await ctx.db.todo.delete({
+      where: {
+        id: input
+      }
+    })
+  }),
+  setDone: publicProcedure.input(setDoneInput).mutation(async ({ ctx, input }) => {
+    await ctx.db.todo.update({
+      where: {
+        id: input.id
+      },
+      data: {
+        done: input.done
+      }
+    })
   }),
 
-  updateTodo: publicProcedure
-  .input(z.object({ id: z.string(), text: z.string().min(5), completed: z.boolean() }))
-  .mutation(async ({ input }) => {
-    const idNumber: number = parseInt(input.id, 10); 
 
-    const updatedTodo = await db.update(todos)
-      .set({ text: input.text, completed: input.completed })
-      .where(sql`id = ${idNumber}`)
-      .returning();
+  editTodo: publicProcedure.input(setEditInput).mutation(async ({ ctx, input }) => {
 
-    console.log(updatedTodo);
+
+    const updatedTodo = await ctx.db.todo.update({
+      where: {
+        id: input.id
+      },
+      data: {        
+        title: input.title,
+      }
+    });
+
     return updatedTodo;
-  }),
+  })
 
-
-  deleteTodo: publicProcedure
-    .input(z.object({ id: z.string() })) 
-    .mutation(async ({ input }) => {
-      const idNumber: number = parseInt(input.id, 10);
-      const deletedTodo = await db.delete(todos)
-        .where(sql`id = ${idNumber}`) 
-        .returning();
-
-      console.log(deletedTodo);
-      return deletedTodo;
-    }),
-})
+});

@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // import { postRouter } from "/server/api/routers/post";
-import { todoRouter } from "./routers/todo";
+import { todoRouter} from "./routers/todo";
 // import { todoRouter } from "./routers/todo";
 import { createCallerFactory, createTRPCRouter } from "./trpc";
 // import { createCallerFactory, createTRPCRouter } from "/server/api/trpc";

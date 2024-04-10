@@ -1,152 +1,208 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { Typography, Button, TextField, CircularProgress, Box, Container, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material'; // Import icons
+import {
+  Typography,
+  Button,
+  TextField,
+  CircularProgress,
+  Box,
+  Container,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+  Checkbox,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  AppBar,
+  Toolbar,
+} from '@mui/material';
+import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { api } from '@/utils/api';
 
+interface Todo {
+ 
+  id: string;
+  title: string;
+  done: boolean;
+}
+
 export default function Home() {
-  const [todo, setTodo] = useState<{ text: string | null; id: string; completed: boolean | null; }>({ text: '', id: '0', completed: null });
-  const [editTodoText, setEditTodoText] = useState<string>('');
-  const [editTodoId, setEditTodoId] = useState<string>('');
-  const [isEditing, setIsEditing] = useState<boolean>(false);
-
-  const getTodosQuery = api.todo.getTodos.useQuery();
-  const submitTodoMutation = api.todo.submitTodo.useMutation();
-  const updateTodoMutation = api.todo.updateTodo.useMutation();
-  const deleteTodoMutation = api.todo.deleteTodo.useMutation();
   const { data: session } = useSession();
+  const [title, setTitle] = useState('');
+  const [editId, setEditId] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTodoText, setEditTodoText] = useState('');
 
-  useEffect(() => {
-    void getTodosQuery.refetch();
-  }, [getTodosQuery, session]);
+  const ctx = api.useUtils();
+  const { data: todosData, isLoading: todosLoading } = api.todo.getTodosByUser.useQuery(
+    session?.user?.id ?? ''
+  );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const { mutate } = api.todo.createTodo.useMutation({
+    onSuccess: () => {
+      setTitle('');
+      void ctx.todo.getTodosByUser.invalidate();
+    },
+  });
+
+  const { mutate: setDoneMutate } = api.todo.setDone.useMutation({
+    onSuccess: () => {
+      void ctx.todo.getTodosByUser.invalidate();
+    },
+  });
+
+  const { mutate: deleteMutate } = api.todo.deleteTodo.useMutation({
+    onSuccess: () => {
+      void ctx.todo.getTodosByUser.invalidate();
+    },
+  });
+
+  const { mutate: editMutate } = api.todo.editTodo.useMutation({
+    onSuccess: () => {
+      setTitle('');
+      setEditId('');
+      void ctx.todo.getTodosByUser.invalidate();
+      setIsEditing(false);
+    },
+  });
+
+  const handleAddTodo = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
 
-    if (!todo.text || todo.text.length < 5) {
-      return alert('Todo must contain at least 5 characters');
+    if (!title.trim()) {
+      alert('Please enter your todo ');
+      return;
     }
 
-    await submitTodoMutation.mutateAsync({ text: todo.text });
-
-    void getTodosQuery.refetch();
-
-    setTodo({ ...todo, text: '', id: '0', completed: null });
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteTodoMutation.mutateAsync({ id });
-
-    void getTodosQuery.refetch();
-  };
-
-  const handleCheckboxChange = async (id: string, text: string, completed: boolean) => {
-    const updatedCompleted = !completed;
-
-    await updateTodoMutation.mutateAsync({ id, text, completed: updatedCompleted }, {
-      onSuccess: () => {
-        void getTodosQuery.refetch();
-      },
-      onError: (error) => {
-        console.error('Error updating todo:', error);
-      },
+    mutate({
+      userId: session?.user.id ?? '',
+      title: title,
+      done: false,
     });
   };
 
-  const handleEdit = (id: string, text: string) => {
-    setEditTodoId(id);
-    setEditTodoText(text);
+  const handleEditSubmit = () => {
+    editMutate({
+      id: editId, title: editTodoText,
+    });
+  };
+
+  const handleEdit = (todo: Todo) => {
+    setEditId(todo.id);
+    setEditTodoText(todo.title);
     setIsEditing(true);
   };
 
-  const handleEditSubmit = async () => {
-    if (!editTodoText || editTodoText.length < 5) {
-      return alert('Todo must contain at least 5 characters');
-    }
+  // const handleDelete = (id) => {
+  //   deleteMutate({ id: id });
+  // };
 
-    await updateTodoMutation.mutateAsync({ id: editTodoId, text: editTodoText, completed: todo.completed ?? false }, {
-      onSuccess: () => {
-        void getTodosQuery.refetch();
-        setEditTodoId('');
-        setEditTodoText('');
-        setIsEditing(false);
-      },
-      onError: (error) => {
-        console.error('Error updating todo:', error);
-      },
-    });
+  const handleCheckboxChange = (id: string, text: string, done: boolean) => {
+    setDoneMutate({ id: id, done: !done });
   };
 
   return (
-    <Container maxWidth={false} className="py-6 px-12" style={{ background: "#E0E0E0" }}>
-      <Typography variant="h4" gutterBottom>
-        {session?.user ? `Welcome, ${session.user.name}` : 'Please sign in'}
-      </Typography>
-      {session ? (
-        <>
-          <Button variant="contained" onClick={() => signOut()} color="secondary" style={{ color: "white", background: "red" }}>
-            Sign Out
-          </Button>
-          <form onSubmit={handleSubmit} style={{ marginTop: '16px', display: "flex", gap: "8px" }}>
-            <TextField
-              type="text"
-              name="text"
-              id="todo"
-              label="Todo"
-              variant="outlined"
-              size="small"
-              fullWidth
-              onChange={(e) => setTodo({ ...todo, text: e.target.value })}
-              value={todo.text}
-              style={{ marginBottom: '8px' }}
-            />
-            <Button type="submit" variant="contained" color="primary" size="small" style={{ color: "white", background: "blue" }}>
-              Submit
-            </Button>
-          </form>
-          <Box mt={2}>
-            {getTodosQuery.isLoading ? (
-              <CircularProgress size={24} />
-            ) : getTodosQuery.isError ? (
-              <Typography variant="body1" color="error">
-                Error fetching todos: {getTodosQuery.error?.message}
+    <>
+      <AppBar position="static">
+        <Toolbar>
+          <Typography variant="h6" style={{ flexGrow: 1 }}>
+            Todo App
+          </Typography>
+          {session?.user && (
+            <>
+              <Typography variant="body1" style={{ marginRight: '16px' }}>
+                Welcome, {session.user.name}
               </Typography>
-            ) : (
-              <List>
-                {getTodosQuery.data && Array.isArray(getTodosQuery.data) ? (
-                  getTodosQuery.data.map((todo) => (
-                    <ListItem key={todo.id.toString()}>
-                      <Checkbox
-                        checked={todo.completed ?? false}
-                        onChange={() => handleCheckboxChange(todo.id.toString(), todo.text ?? '', todo.completed ?? false)}
-                      />
-                      <ListItemText
-                        primary={todo.text ?? ''}
-                        secondary={todo.completed ? 'Completed' : 'Incomplete'}
-                        style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}
-                      />
-                      <ListItemSecondaryAction>
-                        <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(todo.id.toString(), todo.text ?? '')}>
-                          <EditIcon style={{ color: 'green' }} />
-                        </IconButton>
-                        <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(todo.id.toString())} style={{ marginLeft: '8px' }}>
-                          <DeleteIcon style={{ color: 'red' }} />
-                        </IconButton>
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                  ))
-                ) : (
-                  <Typography variant="body1">No todos found.</Typography>
-                )}
-              </List>
-            )}
-          </Box>
-        </>
-      ) : (
-        <Button variant="contained" onClick={() => signIn()} color="primary" style={{ color: "white", background: "purple" }}>
-          Sign In
-        </Button>
-      )}
+              <Button variant="contained" onClick={() => signOut()} color="secondary">
+                Sign Out
+              </Button>
+            </>
+          )}
+        </Toolbar>
+      </AppBar>
+      <Container maxWidth="lg" className="py-6 px-12" style={{ background: '#E0E0E0' }}>
+        {session ? (
+          <>
+            <form onSubmit={handleAddTodo} style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+              <TextField
+                type="text"
+                name="text"
+                id="todo"
+                label="Todo"
+                variant="outlined"
+                size="small"
+                fullWidth
+                onChange={(e) => setTitle(e.target.value)}
+                value={title}
+                style={{ marginBottom: '8px' }}
+              />
+              <Button
+                style={{ backgroundColor: '#1976D2' }}
+                type="submit"
+                variant="contained"
+                color="primary"
+                size="small"
+              >
+                Submit
+              </Button>
+            </form>
+            <Box mt={2} display="flex" justifyContent="center">
+              {todosLoading ? (
+                <CircularProgress size={30} />
+              ) : todosData ? (
+                <List>
+                  {todosData.map((todo: Todo) => (
+                    <Box style={{width:"500px"}} key={todo.id} boxShadow={3} p={2} mb={3} bgcolor="background.paper">
+                      <ListItem>
+                        <Checkbox
+                          checked={todo.done ?? false}
+                          onChange={() => handleCheckboxChange(todo.id, todo.title, todo.done ?? false)}
+                        />
+                        <ListItemText
+                          primary={todo.title}
+                          style={{ textDecoration: todo.done ? 'line-through' : 'none' }}
+                        />
+                        <ListItemSecondaryAction>
+                          <IconButton
+                            edge="end"
+                            aria-label="edit"
+                            onClick={() => handleEdit(todo)}
+                          >
+                            <EditIcon style={{ color: 'green' }} />
+                          </IconButton>
+                          <IconButton
+                            edge="end"
+                            aria-label="delete"
+                            onClick={() => deleteMutate(todo.id)}
+                            style={{ marginLeft: '8px' }}
+                          >
+                            <DeleteIcon style={{ color: 'red' }} />
+                          </IconButton>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    </Box>
+                  ))}
+                </List>
+              ) : (
+                <Typography variant="body1" color="error">
+                  Error fetching todos
+                </Typography>
+              )}
+            </Box>
+          </>
+        ) : (
+          <Button style={{ backgroundColor: '#1976D2' }} variant="contained" onClick={() => signIn()} color="primary">
+            Sign In
+          </Button>
+        )}
+      </Container>
       <Dialog open={isEditing} onClose={() => setIsEditing(false)}>
         <DialogTitle>Edit Todo</DialogTitle>
         <DialogContent>
@@ -162,9 +218,11 @@ export default function Home() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-          <Button onClick={handleEditSubmit} color="primary">Save Changes</Button>
+          <Button onClick={handleEditSubmit} color="primary">
+            Save Changes
+          </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </>
   );
 }
