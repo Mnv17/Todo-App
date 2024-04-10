@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import {
@@ -22,12 +19,12 @@ import {
   DialogActions,
   AppBar,
   Toolbar,
+  Avatar,
 } from '@mui/material';
 import { Delete as DeleteIcon, Edit as EditIcon } from '@mui/icons-material';
 import { api } from '@/utils/api';
 
 interface Todo {
- 
   id: string;
   title: string;
   done: boolean;
@@ -39,6 +36,7 @@ export default function Home() {
   const [editId, setEditId] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [editTodoText, setEditTodoText] = useState('');
+  const [todoError, setTodoError] = useState('');
 
   const ctx = api.useUtils();
   const { data: todosData, isLoading: todosLoading } = api.todo.getTodosByUser.useQuery(
@@ -73,11 +71,11 @@ export default function Home() {
     },
   });
 
-  const handleAddTodo = (e: { preventDefault: () => void; }) => {
+  const handleAddTodo = (e: { preventDefault: () => void }) => {
     e.preventDefault();
 
     if (!title.trim()) {
-      alert('Please enter your todo ');
+      setTodoError('Todo can\'t be empty');
       return;
     }
 
@@ -100,10 +98,6 @@ export default function Home() {
     setIsEditing(true);
   };
 
-  // const handleDelete = (id) => {
-  //   deleteMutate({ id: id });
-  // };
-
   const handleCheckboxChange = (id: string, text: string, done: boolean) => {
     setDoneMutate({ id: id, done: !done });
   };
@@ -117,7 +111,10 @@ export default function Home() {
           </Typography>
           {session?.user && (
             <>
-              <Typography variant="body1" style={{ marginRight: '16px' }}>
+              {session.user.image && ( 
+                <Avatar alt={session.user.name ?? ''} src={session.user.image} style={{ marginRight: '8px' }} />
+              )}
+              <Typography style={{ marginRight: "15px" }} variant="body1">
                 Welcome, {session.user.name}
               </Typography>
               <Button variant="contained" onClick={() => signOut()} color="secondary">
@@ -139,19 +136,26 @@ export default function Home() {
                 variant="outlined"
                 size="small"
                 fullWidth
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setTodoError('');
+                }}
                 value={title}
                 style={{ marginBottom: '8px' }}
+                error={!!todoError}
+                helperText={todoError}
               />
-              <Button
-                style={{ backgroundColor: '#1976D2' }}
-                type="submit"
-                variant="contained"
-                color="primary"
-                size="small"
-              >
-                Submit
-              </Button>
+              <Box mt={1}>
+                <Button
+                  style={{ backgroundColor: '#1976D2', width: '100%' }}
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                >
+                  Submit
+                </Button>
+              </Box>
             </form>
             <Box mt={2} display="flex" justifyContent="center">
               {todosLoading ? (
@@ -159,7 +163,7 @@ export default function Home() {
               ) : todosData ? (
                 <List>
                   {todosData.map((todo: Todo) => (
-                    <Box style={{width:"500px"}} key={todo.id} boxShadow={3} p={2} mb={3} bgcolor="background.paper">
+                    <Box style={{ width: "500px" }} key={todo.id} boxShadow={3} p={2} mb={3} bgcolor="background.paper">
                       <ListItem>
                         <Checkbox
                           checked={todo.done ?? false}
