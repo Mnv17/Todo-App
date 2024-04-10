@@ -30,6 +30,8 @@ interface Todo {
   done: boolean;
 }
 
+const ITEMS_PER_PAGE = 5;
+
 export default function Home() {
   const { data: session } = useSession();
   const [title, setTitle] = useState('');
@@ -37,11 +39,16 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
   const [editTodoText, setEditTodoText] = useState('');
   const [todoError, setTodoError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const ctx = api.useUtils();
   const { data: todosData, isLoading: todosLoading } = api.todo.getTodosByUser.useQuery(
     session?.user?.id ?? ''
   );
+
+  const paginatedTodos = todosData ? todosData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) : [];
+
+  const totalPages = Math.ceil((todosData?.length ?? 0) / ITEMS_PER_PAGE);
 
   const { mutate } = api.todo.createTodo.useMutation({
     onSuccess: () => {
@@ -102,6 +109,10 @@ export default function Home() {
     setDoneMutate({ id: id, done: !done });
   };
 
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
   return (
     <>
       <AppBar position="static">
@@ -111,13 +122,22 @@ export default function Home() {
           </Typography>
           {session?.user && (
             <>
-              {session.user.image && ( 
+              {session.user.image && (
                 <Avatar alt={session.user.name ?? ''} src={session.user.image} style={{ marginRight: '8px' }} />
               )}
-              <Typography style={{ marginRight: "15px" }} variant="body1">
+              <Typography style={{ marginRight: '15px' }} variant="body1">
                 Welcome, {session.user.name}
               </Typography>
-              <Button variant="contained" onClick={() => signOut()} color="secondary">
+              <Button
+                variant="contained"
+                onClick={() => signOut()}
+                color="secondary"
+                sx={{
+                  '&:hover': {
+                    backgroundColor: '#039BE5', // Light blue color on hover
+                  },
+                }}
+              >
                 Sign Out
               </Button>
             </>
@@ -160,10 +180,17 @@ export default function Home() {
             <Box mt={2} display="flex" justifyContent="center">
               {todosLoading ? (
                 <CircularProgress size={30} />
-              ) : todosData ? (
+              ) : (
                 <List>
-                  {todosData.map((todo: Todo) => (
-                    <Box style={{ width: "500px" }} key={todo.id} boxShadow={3} p={2} mb={3} bgcolor="background.paper">
+                  {paginatedTodos.map((todo: Todo) => (
+                    <Box
+                      style={{ width: '500px' }}
+                      key={todo.id}
+                      boxShadow={3}
+                      p={2}
+                      mb={3}
+                      bgcolor="background.paper"
+                    >
                       <ListItem>
                         <Checkbox
                           checked={todo.done ?? false}
@@ -174,11 +201,7 @@ export default function Home() {
                           style={{ textDecoration: todo.done ? 'line-through' : 'none' }}
                         />
                         <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            aria-label="edit"
-                            onClick={() => handleEdit(todo)}
-                          >
+                          <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(todo)}>
                             <EditIcon style={{ color: 'green' }} />
                           </IconButton>
                           <IconButton
@@ -194,15 +217,52 @@ export default function Home() {
                     </Box>
                   ))}
                 </List>
-              ) : (
-                <Typography variant="body1" color="error">
-                  Error fetching todos
-                </Typography>
               )}
             </Box>
+            {todosData && todosData.length > ITEMS_PER_PAGE && (
+              <Box mt={2} display="flex" justifyContent="center">
+                <Button
+                  style={{ backgroundColor: currentPage === 1 ? '#BCAAA4' : '#1976D2' }}
+                  variant="contained"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  color="secondary"
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: currentPage === 1 ? '#FFFFFF' : '#039BE5', // Light blue color on hover
+                    },
+                  }}
+                >
+                  Previous Page
+                </Button>
+                <Typography variant="body1" style={{ margin: '0 10px' }}>
+                  Page {currentPage} of {totalPages}
+                </Typography>
+                <Button
+                  style={{ backgroundColor: currentPage === totalPages ? '#BCAAA4' : '#1976D2' }}
+                  variant="contained"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  color="secondary"
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: currentPage === totalPages ? '#FFFFFF' : '#039BE5', // Light blue color on hover
+                    },
+                  }}
+                >
+                  Next Page
+                </Button>
+
+              </Box>
+            )}
           </>
         ) : (
-          <Button style={{ backgroundColor: '#1976D2' }} variant="contained" onClick={() => signIn()} color="primary">
+          <Button
+            style={{ backgroundColor: '#1976D2' }}
+            variant="contained"
+            onClick={() => signIn()}
+            color="primary"
+          >
             Sign In
           </Button>
         )}
