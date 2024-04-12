@@ -134,3 +134,5 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+export { TRPCError };
