@@ -46,7 +46,16 @@ export default function Home() {
     session?.user?.id ?? ''
   );
 
-  const paginatedTodos = todosData ? todosData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) : [];
+  // Define the type of paginatedTodos
+  const paginatedTodos: {
+    id: string;
+    title: string;
+    done: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+}[] = todosData ? todosData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE) : [];
+
 
   const totalPages = Math.ceil((todosData?.length ?? 0) / ITEMS_PER_PAGE);
 
